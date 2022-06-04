@@ -9,3 +9,5 @@ class NetConf(object):
             username=username, password=password,
             hostkey_verify=bool(hostkey_verify)
         )
+
+    
