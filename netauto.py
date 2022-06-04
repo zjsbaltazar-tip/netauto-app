@@ -61,7 +61,8 @@ class NetAuto(object):
         bmotd = input("Banner motd: ")
         netconf_bmotd = netconf_bmotd_start + bmotd + netconf_bmotd_end
         netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_bmotd)
-        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        print(netconf_reply)
+        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
     
     def set_hostname(self):
         netconf_hn_start = """
@@ -75,20 +76,50 @@ class NetAuto(object):
         hn = input("Enter hostname: ")
         netconf_hn = netconf_hn_start + hn + netconf_hn_end
         netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_hn)
-        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
 
     def set_loopback(self):
-        pass
+        netconf_loopback_number_start = """
+        <config>
+        <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+        <interface>
+        <Loopback>
+            <name>"""
+        netconf_loopback_number_end = """</name>
+        """
+        netconf_loopback_description_start = """<description>"""
+        netconf_loopback_description_end = """</description>
+        """
+        netconf_loopback_address_start = """<ip>
+        <address>
+        <primary>
+        <address>"""
+        netconf_loopback_address_end = """</address>
+        """
+        netconf_loopback_mask_start = """<mask>"""
+        netconf_loopback_mask_end = """</mask>
+        </primary>
+        </address>
+        </ip>
+        </Loopback>
+        </interface>
+        </native>
+        </config>
+        """
+        loopback_number = input("Enter Loopback number: ")
+        loopback_description = input("Enter Loopback description: ")
+        loopback_address = input("Enter Loopback address: ")
+        loopback_mask = input("Enter Loopback mask: ")
+        netconf_loopback = netconf_loopback_number_start + loopback_number + netconf_loopback_number_end + netconf_loopback_description_start + loopback_description + netconf_loopback_description_end + netconf_loopback_address_start + loopback_address + netconf_loopback_address_end + netconf_loopback_mask_start + loopback_mask + netconf_loopback_mask_end
+        netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_loopback)
+        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
 
     def display_config(self):
-        # Current device configuration
         netconf_reply = self.netconf.manager.get_config(source="running")
-        # Print device config
         netconf_filter = """
         <filter>
             <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native" />
         </filter>
         """
         netconf_reply = self.netconf.manager.get_config(source="running", filter=netconf_filter)
-        # Print YANG config
         print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
