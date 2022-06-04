@@ -48,10 +48,10 @@ class NetAuto(object):
     def set_banner_motd(self):
         netconf_bmotd_start = """
         <config>
-            <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
-            <banner>
-            <motd>
-            <banner>"""
+        <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+        <banner>
+        <motd>
+        <banner>"""
         netconf_bmotd_end = """</banner>
         </motd>
         </banner>
@@ -64,7 +64,18 @@ class NetAuto(object):
         print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
     
     def set_hostname(self):
-        pass
+        netconf_hn_start = """
+        <config>
+        <native xmlns="http://cisco.com/ns/yang/Cisco-IOS-XE-native">
+            <hostname>"""
+        netconf_hn_end = """</hostname>
+        </native>
+        </config>
+        """
+        hn = input("Enter hostname: ")
+        netconf_hn = netconf_hn_start + hn + netconf_hn_end
+        netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_hn)
+        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
 
     def set_loopback(self):
         pass
