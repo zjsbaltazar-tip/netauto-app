@@ -5,11 +5,14 @@ import requests
 
 class NetAuto(object):
 
-    def __init__(self, netconf: nf, options: opt):
+    def __init__(self, netconf: nf, options: opt, webex_access_token: str, webex_room_id: str):
         self.netconf = netconf
         self.options = options
         self.state = False
         self.strbuffer = ""
+        self.webex_access_token = webex_access_token
+        self.webex_room_id = webex_room_id
+        self.msg = ""
     
     def init(self):
         self.state = True
@@ -61,8 +64,14 @@ class NetAuto(object):
         bmotd = input("Banner motd: ")
         netconf_bmotd = netconf_bmotd_start + bmotd + netconf_bmotd_end
         netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_bmotd)
-        print(netconf_reply)
-        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        self.msg = """
+        CONFIGURATION NOTIFICATION:
+        Target device: {}
+        Changes: Banner motd
+        Description: {}
+        Note: This is an automated message.
+        """.format(self.netconf.host, bmotd)
     
     def set_hostname(self):
         netconf_hn_start = """
@@ -76,7 +85,14 @@ class NetAuto(object):
         hn = input("Enter hostname: ")
         netconf_hn = netconf_hn_start + hn + netconf_hn_end
         netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_hn)
-        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        self.msg = """
+        CONFIGURATION NOTIFICATION:
+        Target device: {}
+        Changes: Hostname
+        Description: {}
+        Note: This is an automated message.
+        """.format(self.netconf.host, hn)
 
     def set_loopback(self):
         netconf_loopback_number_start = """
@@ -112,7 +128,14 @@ class NetAuto(object):
         loopback_mask = input("Enter Loopback mask: ")
         netconf_loopback = netconf_loopback_number_start + loopback_number + netconf_loopback_number_end + netconf_loopback_description_start + loopback_description + netconf_loopback_description_end + netconf_loopback_address_start + loopback_address + netconf_loopback_address_end + netconf_loopback_mask_start + loopback_mask + netconf_loopback_mask_end
         netconf_reply = self.netconf.manager.edit_config(target="running", config=netconf_loopback)
-        # print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+        self.msg = """
+        CONFIGURATION NOTIFICATION:
+        Target device: {}
+        Changes: Loopback interface
+        Description: Loopback{}, {}, IP:{}, mask:{}
+        Note: This is an automated message.
+        """.format(self.netconf.host, loopback_number, loopback_description, loopback_address, loopback_mask)
 
     def display_config(self):
         netconf_reply = self.netconf.manager.get_config(source="running")
@@ -123,3 +146,18 @@ class NetAuto(object):
         """
         netconf_reply = self.netconf.manager.get_config(source="running", filter=netconf_filter)
         print(xml.dom.minidom.parseString(netconf_reply.xml).toprettyxml())
+
+    def webex_notif(self):
+        #WEBEX message
+        access_token = self.webex_access_token
+        room_id = self.webex_room_id
+        url = 'https://webexapis.com/v1/messages'
+
+        headers = {
+            'Authorization': 'Bearer {}'.format(access_token),
+            'Content-Type': 'application/json'
+        }
+        params = {'roomId': room_id, 'markdown': self.msg}
+        res = requests.post(url, headers=headers, json=params)
+        print(res.json())
+        self.msg = ""

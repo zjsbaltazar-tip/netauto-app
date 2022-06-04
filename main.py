@@ -19,5 +19,7 @@ if __name__ == "__main__":
     options += ("loopback", "Loopback")
     options += ("config", "View Config")
     options += ("exit", "Exit")
-    netauto = na(netconf, options)
+    webex_access_token = parser.get("WEBEX", "access_token")
+    webex_room_id = parser.get("WEBEX", "room_id")
+    netauto = na(netconf, options, webex_access_token, webex_room_id)
     netauto.init()
